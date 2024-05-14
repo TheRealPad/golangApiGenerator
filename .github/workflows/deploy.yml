@@ -12,6 +12,23 @@ on:
       - develop
 
 jobs:
+  build:
+    name: "Deploy"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: start container
+        run: make
+
+      - name: wait 5 sec
+        run: sleep 5
+
+      - name: stop container
+        run: make stop
+
   deploy:
     name: "Deploy"
     runs-on: ubuntu-latest
