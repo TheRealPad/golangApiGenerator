@@ -32,11 +32,11 @@ func ShowHtml(w http.ResponseWriter, file string, data interface{}) {
 }
 
 func healthHtml(w http.ResponseWriter, r *http.Request) {
-	ShowHtml(w, "src/controller/health/health.html", nil)
+	ShowHtml(w, "src/controllers/health/health.html", nil)
 }
 
 func trafficHtml(w http.ResponseWriter, r *http.Request) {
-	ShowHtml(w, "src/controller/health/traffic.html", logging.Logs)
+	ShowHtml(w, "src/controllers/health/traffic.html", logging.Logs)
 }
 
 func InitController(r *mux.Router) {

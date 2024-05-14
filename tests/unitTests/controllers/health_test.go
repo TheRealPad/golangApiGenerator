@@ -1,4 +1,4 @@
-package controller
+package controllers
 
 import (
 	"httpServer/src/controller/health"
