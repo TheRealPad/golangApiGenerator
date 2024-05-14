@@ -2,20 +2,36 @@
 ![Integration test](https://github.com/TheRealPad/golangApiTemplate/actions/workflows/integration-test.yml/badge.svg)
 ![Deploy](https://github.com/TheRealPad/golangApiTemplate/actions/workflows/deploy.yml/badge.svg)
 
-# Go server from config file
+# Go API from config file
 
-Create a server where you just need a config file
+Create a server where you just need a config file, and the program do the rest
 
-met par default une route de log pour avoir les performances et le traffic sur l'api (route avec et sans html pour avoir l'affichage ou non, mettre temps moyen api call)
-faire graph api call par heure
+## Config
+- server name
+- api port
+- routes (name and HTTP method + describe which part of CRUD it is)
+- data models (name, fields and fields type)
 
-## Create
-- routes -> CRUD
-- data models -> nom et data type
-- data base -> sauvegarde data types dedans et fais les fonctions pour gérer
-- port -> le port sur lequel est lancé le serveur
+## How to run
 
-## How to use
-1. config file
-2. lancer
-3. docker
+By default, the API is just a basic API with a logger to get the activity on the software
+
+Default available routes:
+```txt
+- /health               -> GET
+- /health/html          -> GET
+- /health/traffic       -> GET
+- /health/traffic/html  -> GET
+```
+
+If you're on Unix-like system, you can use the [Makefile](Makefile) to run the Docker in background
+
+If you can't use the Makefile, you can run:
+```bash
+docker-compose -f ./config/docker/docker-compose.yml up --build -d
+```
+
+If you can't use Docker, you can run:
+```bash
+go run .
+```
