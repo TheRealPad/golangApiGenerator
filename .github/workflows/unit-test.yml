@@ -12,7 +12,7 @@ on:
       - develop
 
 jobs:
-  build:
+  unitTest:
     name: "Unit test"
     runs-on: ubuntu-latest
 
