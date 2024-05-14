@@ -2,7 +2,7 @@
 
 Create a server where you just need a config file
 
-met par default une route de log pour avoir les performances et le traffic sur l'api (route avec et sans html pour avoir l'affichage ou non)
+met par default une route de log pour avoir les performances et le traffic sur l'api (route avec et sans html pour avoir l'affichage ou non, mettre temps moyen api call)
 faire graph api call par heure
 
 ## Create

@@ -1,21 +1,22 @@
 package logging
 
 import (
-	"httpServer/src/middlewares"
 	"httpServer/src/models"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 var Logs []models.Log
 
-func Logging() middlewares.Middleware {
-	return func(f http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
+func Logging() mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			Logs = append(Logs, models.Log{Method: r.Method, Url: r.URL.Path, Address: r.RemoteAddr, Time: time.Now()})
 			defer func() { log.Println(r.Method, r.URL.Path, r.RemoteAddr) }()
-			f(w, r)
-		}
+			next.ServeHTTP(w, r)
+		})
 	}
 }

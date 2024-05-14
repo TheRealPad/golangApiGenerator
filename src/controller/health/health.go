@@ -3,12 +3,13 @@ package health
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"html/template"
 	"httpServer/src/middlewares"
 	"httpServer/src/middlewares/logging"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +26,7 @@ func traffic(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func showHtml(w http.ResponseWriter, file string, data any) {
+func showHtml(w http.ResponseWriter, file string, data interface{}) {
 	tmpl := template.Must(template.ParseFiles(file))
 	tmpl.Execute(w, data)
 }
@@ -40,8 +41,8 @@ func trafficHtml(w http.ResponseWriter, r *http.Request) {
 
 func InitController(r *mux.Router) {
 	logsRouter := r.PathPrefix("/health").Subrouter()
-	logsRouter.HandleFunc("", middlewares.Chain(health, logging.Logging())).Methods("GET")
-	logsRouter.HandleFunc("/html", middlewares.Chain(healthHtml, logging.Logging())).Methods("GET")
-	logsRouter.HandleFunc("/traffic", middlewares.Chain(traffic, logging.Logging())).Methods("GET")
-	logsRouter.HandleFunc("/traffic/html", middlewares.Chain(trafficHtml, logging.Logging())).Methods("GET")
+	logsRouter.HandleFunc("", middlewares.Chain(health)).Methods("GET")
+	logsRouter.HandleFunc("/html", middlewares.Chain(healthHtml)).Methods("GET")
+	logsRouter.HandleFunc("/traffic", middlewares.Chain(traffic)).Methods("GET")
+	logsRouter.HandleFunc("/traffic/html", middlewares.Chain(trafficHtml)).Methods("GET")
 }

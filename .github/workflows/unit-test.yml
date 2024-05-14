@@ -1,0 +1,24 @@
+run-name: Run API unit test
+name: Unit test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    name: "Unit test"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: run unit test
+        run: echo "this is the unit test"

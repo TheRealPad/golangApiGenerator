@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
+	"httpServer/src/middlewares/logging"
 	"net/http"
 	"strconv"
 )
@@ -18,6 +19,7 @@ type Api struct {
 
 func (a Api) Listen() {
 	r := mux.NewRouter()
+	r.Use(logging.Logging())
 	controller.InitControllers(r)
 	fmt.Print("Start listening on port: " + strconv.Itoa(a.Port) + "\n")
 	http.ListenAndServe(":"+strconv.Itoa(a.Port), r)
