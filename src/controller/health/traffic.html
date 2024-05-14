@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logs</title>
+    <style>
+        .log-entry {
+            margin-bottom: 10px; /* Add spacing between entries */
+        }
+    </style>
+</head>
+<body>
+<h1>Logs</h1>
+<ul>
+    {{ range $index, $log := . }}
+    <li class="log-entry">
+        <span><b>Method:</b> {{ $log.Method }}</span>
+        <span><b>URL:</b> {{ $log.Url }}</span>
+        <span><b>Address:</b> {{ $log.Address }}</span>
+        <span><b>Time:</b> {{ $log.Time.Format "2006-01-02 15:04:05" }}</span>
+    </li>
+    {{ end }}
+</ul>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "title": "BooksStore",
+  "port": "8080",
+  "dataModel": {
+    "title": "book",
+    "fields": [
+      "title - string",
+      "author - string"
+    ]
+  },
+  "database": {
+    "url": "http://localhost",
+    "name": "BookStore",
+    "port": "3991",
+    "user": "root",
+    "password": "password"
+  }
+}
