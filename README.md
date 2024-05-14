@@ -1,3 +1,7 @@
+![Unit test](https://github.com/TheRealPad/golangApiTemplate/actions/workflows/unit-test.yml/badge.svg)
+![Integration test](https://github.com/TheRealPad/golangApiTemplate/actions/workflows/integration-test.yml/badge.svg)
+![Deploy](https://github.com/TheRealPad/golangApiTemplate/actions/workflows/deploy.yml/badge.svg)
+
 # Go server from config file
 
 Create a server where you just need a config file
