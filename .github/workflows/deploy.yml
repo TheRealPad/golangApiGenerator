@@ -1,0 +1,25 @@
+run-name: Deploy the API
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    name: "Deploy"
+    runs-on: ubuntu-latest
+    needs: ["Integration test"]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: run unit test
+        run: echo "Deploy api"
