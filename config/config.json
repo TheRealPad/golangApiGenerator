@@ -1,18 +1,42 @@
 {
-  "title": "BooksStore",
-  "port": "8080",
-  "dataModel": {
-    "title": "book",
-    "fields": [
-      "title - string",
-      "author - string"
-    ]
-  },
+  "name": "BookStore",
+  "port": 8080,
   "database": {
     "url": "http://localhost",
     "name": "BookStore",
-    "port": "3991",
+    "port": 3991,
     "user": "root",
     "password": "password"
-  }
+  },
+  "dataModels": [
+    {
+      "name": "book",
+      "fields": [
+        {
+          "value": "title - string"
+        }
+      ],
+      "create": true,
+      "readOne": true,
+      "readMany": true,
+      "update": true,
+      "delete": true
+    },
+    {
+      "name": "user",
+      "fields": [
+        {
+          "value": "name - string"
+        },
+        {
+          "value": "age - number"
+        }
+      ],
+      "create": true,
+      "readOne": true,
+      "readMany": true,
+      "update": true,
+      "delete": true
+    }
+  ]
 }
