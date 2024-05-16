@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
 	"httpServer/src/core"
+	"httpServer/src/initialisation"
 	"httpServer/src/middlewares/logging"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestServerIntegration(t *testing.T) {
-	_ = &core.Api{Port: 8080}
+	_ = &core.Api{Json: initialisation.JsonHandler{File: "config/config.json"}}
 	router := mux.NewRouter()
 	router.Use(logging.Logging())
 	controller.InitControllers(router)
