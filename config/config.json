@@ -1,9 +1,9 @@
 {
-  "title": "BooksStore",
+  "name": "BooksStore",
   "port": 8080,
-  "dataModel": [
+  "dataModels": [
     {
-      "title": "book",
+      "name": "book",
       "fields": [
         "title - string",
         "author - string"
