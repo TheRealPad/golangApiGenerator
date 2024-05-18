@@ -10,7 +10,6 @@ on:
     branches:
       - master
       - develop
-      - 9-instance-data-type-from-config-file
 
 jobs:
   build:
