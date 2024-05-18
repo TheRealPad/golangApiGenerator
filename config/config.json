@@ -29,7 +29,7 @@
           "value": "name - string"
         },
         {
-          "value": "age - number"
+          "value": "age - integer"
         }
       ],
       "create": true,

@@ -5,10 +5,11 @@ import (
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
 	"httpServer/src/initialisation"
-	"httpServer/src/middlewares/logging"
+	"httpServer/src/middlewares"
 	"httpServer/src/models"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type ApiInterface interface {
@@ -22,20 +23,38 @@ type Api struct {
 
 func (a Api) Listen() {
 	var configuration models.Configuration
-	if !a.Initialisation(&configuration) {
+	var dataModel []initialisation.DataModel
+	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
+	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
-	r.Use(logging.Logging())
+	middlewares.GlobalMiddleware(r)
 	controller.InitControllers(r)
 	fmt.Println("Server", configuration.Name, "starts listening on port:", configuration.Port)
 	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
 }
 
-func (a Api) Initialisation(configuration *models.Configuration) bool {
+func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]initialisation.DataModel) bool {
 	if !a.Json.ReadFile(configuration) {
 		return false
 	}
+	for _, model := range configuration.Models {
+		*dataModel = append(*dataModel, initialisation.DataModel{Name: model.Name, Fields: make(initialisation.Field)})
+		dataModelPtr := &(*dataModel)[len(*dataModel)-1]
+		for _, e := range model.Fields {
+			separator := " - "
+			parts := strings.SplitN(e.Value, separator, 2)
+			dataModelPtr.Fields[parts[0]] = &initialisation.DynamicType{}
+			dataModelPtr.Fields[parts[0]].SetData("", initialisation.Datatype(parts[1]))
+		}
+	}
+	displayConfiguration(configuration)
+	return true
+}
+
+func displayConfiguration(configuration *models.Configuration) {
+	fmt.Println("CONFIGURATION:\n")
 	fmt.Println("port:", configuration.Port)
 	fmt.Println("name:", configuration.Name)
 	fmt.Println("Database:")
@@ -60,7 +79,16 @@ func (a Api) Initialisation(configuration *models.Configuration) bool {
 		fmt.Println("\tdelete:", model.Delete)
 		fmt.Println("")
 	}
-	return true
+}
+
+func displayDataTypes(dataModel *[]initialisation.DataModel) {
+	fmt.Println("DATA TYPES:\n")
+	for _, elem := range *dataModel {
+		fmt.Println(elem.Name)
+		for k, f := range elem.Fields {
+			fmt.Println("\t", k, ":", f.GetDataType())
+		}
+	}
 }
 
 type ApiService struct {

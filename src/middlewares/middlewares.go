@@ -1,6 +1,10 @@
 package middlewares
 
-import "net/http"
+import (
+	"github.com/gorilla/mux"
+	"httpServer/src/middlewares/logging"
+	"net/http"
+)
 
 type Middleware func(http.HandlerFunc) http.HandlerFunc
 
@@ -9,4 +13,8 @@ func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 		f = m(f)
 	}
 	return f
+}
+
+func GlobalMiddleware(r *mux.Router) {
+	r.Use(logging.Logging())
 }
