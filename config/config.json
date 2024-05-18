@@ -18,7 +18,7 @@
       ],
       "create": true,
       "readOne": true,
-      "readMany": true,
+      "readMany": false,
       "update": true,
       "delete": true
     },
