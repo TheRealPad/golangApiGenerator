@@ -1,6 +1,10 @@
 package initialisation
 
-import "strconv"
+import (
+	"encoding/json"
+	"github.com/google/uuid"
+	"strconv"
+)
 
 type Datatype string
 
@@ -10,6 +14,7 @@ const (
 	Float            = "float"
 	Complex          = "complex"
 	String           = "string"
+	Uuid             = "uuid"
 )
 
 type dynamicTypeInterface interface {
@@ -40,6 +45,8 @@ func (d *DynamicType) SetData(data string, dataType Datatype) {
 		d.data, _ = strconv.ParseFloat(data, 64)
 	case Complex:
 		d.data, _ = strconv.ParseComplex(data, 64)
+	case Uuid:
+		d.data, _ = uuid.Parse(data)
 	default:
 		d.data = data
 	}
@@ -55,10 +62,14 @@ func (d DynamicType) GetDataType() Datatype {
 
 func (d DynamicType) isDataTypeValid(dataType Datatype) bool {
 	switch dataType {
-	case Boolean, Integer, Float, Complex, String:
+	case Boolean, Integer, Float, Complex, String, Uuid:
 		return true
 	}
 	return false
+}
+
+func (d *DynamicType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.data)
 }
 
 type Field map[string]*DynamicType

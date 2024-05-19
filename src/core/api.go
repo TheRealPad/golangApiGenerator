@@ -30,7 +30,7 @@ func (a Api) Listen() {
 	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
 	middlewares.GlobalMiddleware(r)
-	controller.InitControllers(r)
+	controller.InitControllers(r, &configuration, &dataModel)
 	fmt.Println("Server", configuration.Name, "starts listening on port:", configuration.Port)
 	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
 }
@@ -42,6 +42,8 @@ func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]in
 	for _, model := range configuration.Models {
 		*dataModel = append(*dataModel, initialisation.DataModel{Name: model.Name, Fields: make(initialisation.Field)})
 		dataModelPtr := &(*dataModel)[len(*dataModel)-1]
+		dataModelPtr.Fields[initialisation.Uuid] = &initialisation.DynamicType{}
+		dataModelPtr.Fields[initialisation.Uuid].SetData("", initialisation.Uuid)
 		for _, e := range model.Fields {
 			separator := " - "
 			parts := strings.SplitN(e.Value, separator, 2)
@@ -77,7 +79,7 @@ func displayConfiguration(configuration *models.Configuration) {
 		fmt.Println("\tread many:", model.ReadMany)
 		fmt.Println("\tupdate:", model.Update)
 		fmt.Println("\tdelete:", model.Delete)
-		fmt.Println("")
+		fmt.Println()
 	}
 }
 
