@@ -79,8 +79,11 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
 }
 
 func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
-	r.HandleFunc("/readOne", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/read/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
+		vars := mux.Vars(r)
+		uuid := vars["uuid"]
+		d.Fields[initialisation.Uuid].SetData(uuid, initialisation.Uuid)
 		jsonResponse(d.Fields, w, http.StatusOK)
 	}).Methods("GET")
 	fmt.Println("init /read one endpoint.........................OK")
@@ -99,19 +102,25 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
 }
 
 func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
-	r.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/update/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		if !getRequestData(false, &d, w, r) {
 			return
 		}
+		vars := mux.Vars(r)
+		uuid := vars["uuid"]
+		d.Fields[initialisation.Uuid].SetData(uuid, initialisation.Uuid)
 		jsonResponse(d.Fields, w, http.StatusOK)
 	}).Methods("PUT")
 	fmt.Println("init /update endpoint...........................OK")
 }
 
 func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
-	r.HandleFunc("/delete", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/delete/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
+		vars := mux.Vars(r)
+		uuid := vars["uuid"]
+		fmt.Printf("Delete resource with uuid: %s\n", uuid)
 		jsonResponse(d.Fields, w, http.StatusNoContent)
 	}).Methods("DELETE")
 	fmt.Println("init /delete endpoint...........................OK")
