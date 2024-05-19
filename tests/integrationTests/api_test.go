@@ -7,16 +7,19 @@ import (
 	"httpServer/src/core"
 	"httpServer/src/initialisation"
 	"httpServer/src/middlewares/logging"
+	"httpServer/src/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestServerIntegration(t *testing.T) {
+	var configuration models.Configuration
+	var dataModel []initialisation.DataModel
 	_ = &core.Api{Json: initialisation.JsonHandler{File: "config/config.json"}}
 	router := mux.NewRouter()
 	router.Use(logging.Logging())
-	controller.InitControllers(router)
+	controller.InitControllers(router, &configuration, &dataModel)
 	server := httptest.NewServer(router)
 	defer server.Close()
 	resp, err := http.Get(server.URL + "/health")
