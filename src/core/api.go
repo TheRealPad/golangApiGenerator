@@ -42,8 +42,8 @@ func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]in
 	for _, model := range configuration.Models {
 		*dataModel = append(*dataModel, initialisation.DataModel{Name: model.Name, Fields: make(initialisation.Field)})
 		dataModelPtr := &(*dataModel)[len(*dataModel)-1]
-		dataModelPtr.Fields["uuid"] = &initialisation.DynamicType{}
-		dataModelPtr.Fields["uuid"].SetData("", initialisation.Uuid)
+		dataModelPtr.Fields[initialisation.Uuid] = &initialisation.DynamicType{}
+		dataModelPtr.Fields[initialisation.Uuid].SetData("", initialisation.Uuid)
 		for _, e := range model.Fields {
 			separator := " - "
 			parts := strings.SplitN(e.Value, separator, 2)
@@ -79,7 +79,7 @@ func displayConfiguration(configuration *models.Configuration) {
 		fmt.Println("\tread many:", model.ReadMany)
 		fmt.Println("\tupdate:", model.Update)
 		fmt.Println("\tdelete:", model.Delete)
-		fmt.Println("")
+		fmt.Println()
 	}
 }
 

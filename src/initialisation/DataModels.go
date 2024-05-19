@@ -1,6 +1,7 @@
 package initialisation
 
 import (
+	"encoding/json"
 	"github.com/google/uuid"
 	"strconv"
 )
@@ -65,6 +66,10 @@ func (d DynamicType) isDataTypeValid(dataType Datatype) bool {
 		return true
 	}
 	return false
+}
+
+func (d *DynamicType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.data)
 }
 
 type Field map[string]*DynamicType

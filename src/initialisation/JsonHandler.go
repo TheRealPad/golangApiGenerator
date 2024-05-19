@@ -3,7 +3,7 @@ package initialisation
 import (
 	"encoding/json"
 	"httpServer/src/models"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
@@ -22,7 +22,7 @@ func (j JsonHandler) ReadFile(configuration *models.Configuration) bool {
 		log.Fatal(err)
 		return false
 	}
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &configuration)
 	defer jsonFile.Close()
 	return true
