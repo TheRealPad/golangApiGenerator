@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
+	database2 "httpServer/src/database"
 	"httpServer/src/initialisation"
 	"httpServer/src/middlewares"
 	"httpServer/src/models"
@@ -24,13 +25,15 @@ type Api struct {
 func (a Api) Listen() {
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
+	var db database2.DatabaseInterface
+	db = database2.MongoDB{}
 	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
 	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
 	middlewares.GlobalMiddleware(r)
-	controller.InitControllers(r, &configuration, &dataModel)
+	controller.InitControllers(r, &configuration, &dataModel, db)
 	fmt.Println("Server", configuration.Name, "starts listening on port:", configuration.Port)
 	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
 }

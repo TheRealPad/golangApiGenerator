@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"httpServer/src/controller/health"
+	database2 "httpServer/src/database"
 	"httpServer/src/initialisation"
 	"httpServer/src/models"
 	"httpServer/src/utils"
@@ -12,9 +13,9 @@ import (
 	"net/http"
 )
 
-func InitControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel) {
+func InitControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel, db database2.DatabaseInterface) {
 	health.InitController(r)
-	initCustomControllers(r, configuration, dataModel)
+	initCustomControllers(r, configuration, dataModel, db)
 }
 
 func test(w http.ResponseWriter, r *http.Request) {
@@ -67,41 +68,40 @@ func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWr
 	return true
 }
 
-func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
+func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		if !getRequestData(false, &d, w, r) {
 			return
 		}
-		jsonResponse(d.Fields, w, http.StatusCreated)
+		newData := db.Create(d)
+		jsonResponse(newData, w, http.StatusCreated)
 	}).Methods("POST")
 	fmt.Println("init /create endpoint...........................OK")
 }
 
-func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
+func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/read/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		vars := mux.Vars(r)
-		uuid := vars["uuid"]
-		d.Fields[initialisation.Uuid].SetData(uuid, initialisation.Uuid)
+		id := vars["uuid"]
+		d.Fields[initialisation.Uuid].SetData(id, initialisation.Uuid)
+		// ok, _ := uuid.Parse(id)
+		// data := db.ReadOne(ok)
 		jsonResponse(d.Fields, w, http.StatusOK)
 	}).Methods("GET")
 	fmt.Println("init /read one endpoint.........................OK")
 }
 
-func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
+func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/read", func(w http.ResponseWriter, r *http.Request) {
-		d := dataModel
-		var lst []initialisation.Field
-		lst = append(lst, d.Fields)
-		lst = append(lst, d.Fields)
-		lst = append(lst, d.Fields)
+		lst := db.ReadMany(dataModel.Name)
 		jsonResponse(lst, w, http.StatusOK)
 	}).Methods("GET")
 	fmt.Println("init /read many endpoint........................OK")
 }
 
-func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
+func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/update/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		if !getRequestData(false, &d, w, r) {
@@ -115,7 +115,7 @@ func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
 	fmt.Println("init /update endpoint...........................OK")
 }
 
-func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
+func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/delete/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		vars := mux.Vars(r)
@@ -126,12 +126,12 @@ func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel) {
 	fmt.Println("init /delete endpoint...........................OK")
 }
 
-func initCustomControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel) {
+func initCustomControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel, db database2.DatabaseInterface) {
 	for _, field := range configuration.Models {
 		controller := r.PathPrefix("/" + field.Name).Subrouter()
 		fmt.Println("Initializing", "/"+field.Name, "controller")
 		controller.HandleFunc("/test", test).Methods("GET")
-		endpointInitializers := map[*bool]func(r *mux.Router, dataModel initialisation.DataModel){
+		endpointInitializers := map[*bool]func(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface){
 			&field.Create:   initCreateEndpoint,
 			&field.ReadOne:  initReadOneEndpoint,
 			&field.ReadMany: initReadManyEndpoint,
@@ -146,7 +146,7 @@ func initCustomControllers(r *mux.Router, configuration *models.Configuration, d
 		}
 		for condition, initializer := range endpointInitializers {
 			if *condition {
-				initializer(controller, d)
+				initializer(controller, d, db)
 			}
 		}
 		fmt.Println()
