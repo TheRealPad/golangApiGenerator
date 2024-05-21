@@ -26,10 +26,10 @@ func (a Api) Listen() {
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
 	var db database2.DatabaseInterface
-	db = database2.MongoDB{}
 	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
+	db = &database2.MongoDB{Name: configuration.Db.Name, Url: configuration.Db.Url}
 	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
 	middlewares.GlobalMiddleware(r)
@@ -65,9 +65,6 @@ func displayConfiguration(configuration *models.Configuration) {
 	fmt.Println("Database:")
 	fmt.Println("\turl:", configuration.Db.Url)
 	fmt.Println("\tname:", configuration.Db.Name)
-	fmt.Println("\tport:", configuration.Db.Port)
-	fmt.Println("\tuser:", configuration.Db.User)
-	fmt.Println("\tpassword:", configuration.Db.Password)
 	fmt.Println("data models:")
 	fmt.Println("total:", len(configuration.Models))
 	for _, model := range configuration.Models {

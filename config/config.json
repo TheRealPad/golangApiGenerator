@@ -2,11 +2,8 @@
   "name": "BookStore",
   "port": 8080,
   "database": {
-    "url": "http://localhost",
-    "name": "BookStore",
-    "port": 3991,
-    "user": "root",
-    "password": "password"
+    "url": "",
+    "name": "sample_mflix"
   },
   "dataModels": [
     {
