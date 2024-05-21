@@ -72,6 +72,35 @@ func (d *DynamicType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.data)
 }
 
+func InterfaceToDataModel(data map[string]interface{}, dataModel DataModel) DataModel {
+	d := &DataModel{}
+	d.Fields = make(Field)
+	for key, value := range data {
+		_, ok := dataModel.Fields[key]
+		if ok {
+			d.Fields[key] = &DynamicType{}
+			switch value.(type) {
+			case string:
+				d.Fields[key].SetData(value.(string), String)
+			case int:
+				d.Fields[key].SetData(strconv.Itoa(value.(int)), Integer)
+			case float32:
+				dataString := strconv.FormatFloat(float64(value.(float32)), 'f', -1, 32)
+				d.Fields[key].SetData(dataString, Float)
+			case float64:
+				dataString := strconv.FormatFloat(value.(float64), 'f', -1, 64)
+				d.Fields[key].SetData(dataString, Float)
+			case rune:
+				d.Fields[key].SetData(strconv.Itoa(int(value.(int32))), Integer)
+			case bool:
+				dataString := strconv.FormatBool(value.(bool))
+				d.Fields[key].SetData(dataString, Boolean)
+			}
+		}
+	}
+	return *d
+}
+
 type Field map[string]*DynamicType
 
 type DataModel struct {

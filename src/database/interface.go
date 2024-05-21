@@ -7,7 +7,7 @@ import (
 
 type DatabaseInterface interface {
 	Create(data initialisation.DataModel) initialisation.Field
-	ReadOne(uuid uuid.UUID, name string) initialisation.Field
+	ReadOne(uuid uuid.UUID, dataModel initialisation.DataModel) (initialisation.Field, error)
 	ReadMany(name string) []initialisation.Field
 	Update(uuid uuid.UUID, data initialisation.DataModel) initialisation.Field
 	Delete(uuid uuid.UUID, name string) bool

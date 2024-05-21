@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"httpServer/src/controller/health"
 	database2 "httpServer/src/database"
@@ -82,13 +83,17 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 
 func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/read/{uuid}", func(w http.ResponseWriter, r *http.Request) {
-		d := dataModel
 		vars := mux.Vars(r)
 		id := vars["uuid"]
-		d.Fields[initialisation.Uuid].SetData(id, initialisation.Uuid)
-		// ok, _ := uuid.Parse(id)
-		// data := db.ReadOne(ok)
-		jsonResponse(d.Fields, w, http.StatusOK)
+		ok, _ := uuid.Parse(id)
+		fields, err := db.ReadOne(ok, dataModel)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		} else if fields == nil {
+			http.Error(w, "Data not found", http.StatusNotFound)
+		} else {
+			jsonResponse(fields, w, http.StatusOK)
+		}
 	}).Methods("GET")
 	fmt.Println("init /read one endpoint.........................OK")
 }
