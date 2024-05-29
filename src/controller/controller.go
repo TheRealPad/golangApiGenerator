@@ -75,8 +75,12 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		if !getRequestData(false, &d, w, r) {
 			return
 		}
-		newData := db.Create(d)
-		jsonResponse(newData, w, http.StatusCreated)
+		newData, err := db.Create(d)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		} else {
+			jsonResponse(newData, w, http.StatusCreated)
+		}
 	}).Methods("POST")
 	fmt.Println("init /create endpoint...........................OK")
 }
@@ -100,8 +104,12 @@ func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db d
 
 func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/read", func(w http.ResponseWriter, r *http.Request) {
-		lst := db.ReadMany(dataModel.Name)
-		jsonResponse(lst, w, http.StatusOK)
+		lst, err := db.ReadMany(dataModel)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		} else {
+			jsonResponse(lst, w, http.StatusOK)
+		}
 	}).Methods("GET")
 	fmt.Println("init /read many endpoint........................OK")
 }

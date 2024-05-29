@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"httpServer/src/initialisation"
+	"log"
 )
 
 type MongoDB struct {
@@ -15,7 +16,7 @@ type MongoDB struct {
 	Url  string
 }
 
-func (m MongoDB) Create(data initialisation.DataModel) initialisation.Field {
+func (m MongoDB) Create(data initialisation.DataModel) (initialisation.Field, error) {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(m.Url))
 	if err != nil {
 		panic(err)
@@ -40,9 +41,9 @@ func (m MongoDB) Create(data initialisation.DataModel) initialisation.Field {
 
 	_, err = coll.InsertOne(context.TODO(), document)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return data.Fields
+	return data.Fields, nil
 }
 
 func (m MongoDB) ReadOne(uuid uuid.UUID, dataModel initialisation.DataModel) (initialisation.Field, error) {
@@ -71,21 +72,41 @@ func (m MongoDB) ReadOne(uuid uuid.UUID, dataModel initialisation.DataModel) (in
 	return d.Fields, nil
 }
 
-func (m MongoDB) ReadMany(name string) []initialisation.Field {
+func (m MongoDB) ReadMany(dataModel initialisation.DataModel) ([]initialisation.Field, error) {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(m.Url))
+	if err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database("sample_mflix").Collection(dataModel.Name)
+	cursor, err := coll.Find(context.TODO(), bson.D{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(context.TODO())
+
+	var results []map[string]interface{}
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		log.Fatal(err)
+	}
+
 	var lst []initialisation.Field
-	d := initialisation.DataModel{}
-
-	lst = append(lst, d.Fields)
-	lst = append(lst, d.Fields)
-	lst = append(lst, d.Fields)
-	return lst
+	for _, result := range results {
+		lst = append(lst, initialisation.InterfaceToDataModel(result, dataModel).Fields)
+	}
+	return lst, nil
 }
 
-func (m MongoDB) Update(uuid uuid.UUID, data initialisation.DataModel) initialisation.Field {
+func (m MongoDB) Update(uuid uuid.UUID, data initialisation.DataModel) (initialisation.Field, error) {
 	data.Fields[initialisation.Uuid].SetData(uuid.String(), initialisation.Uuid)
-	return data.Fields
+	return data.Fields, nil
 }
 
-func (m MongoDB) Delete(uuid uuid.UUID, name string) bool {
-	return true
+func (m MongoDB) Delete(uuid uuid.UUID, name string) (bool, error) {
+	return true, nil
 }
