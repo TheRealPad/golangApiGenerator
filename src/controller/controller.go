@@ -50,6 +50,7 @@ func getKey(d *initialisation.DataModel, key string, requestData interface{}, w 
 func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWriter, r *http.Request) bool {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		fmt.Println(err.Error())
 		jsonResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
 		return false
 	}
@@ -77,6 +78,7 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		}
 		newData, err := db.Create(d)
 		if err != nil {
+			fmt.Println(err.Error())
 			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			jsonResponse(newData, w, http.StatusCreated)
@@ -92,6 +94,7 @@ func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db d
 		ok, _ := uuid.Parse(id)
 		fields, err := db.ReadOne(ok, dataModel)
 		if err != nil {
+			fmt.Println(err.Error())
 			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else if fields == nil {
 			jsonResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
@@ -106,6 +109,7 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db 
 	r.HandleFunc("/read", func(w http.ResponseWriter, r *http.Request) {
 		lst, err := db.ReadMany(dataModel)
 		if err != nil {
+			fmt.Println(err.Error())
 			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			jsonResponse(lst, w, http.StatusOK)
@@ -121,9 +125,16 @@ func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 			return
 		}
 		vars := mux.Vars(r)
-		uuid := vars["uuid"]
-		d.Fields[initialisation.Uuid].SetData(uuid, initialisation.Uuid)
-		jsonResponse(d.Fields, w, http.StatusOK)
+		pathUuid := vars["uuid"]
+		parseUuid, _ := uuid.Parse(pathUuid)
+		d.Fields["uuid"].SetData(parseUuid.String(), initialisation.Uuid)
+		_, err := db.Update(parseUuid, d)
+		if err != nil {
+			fmt.Println(err.Error())
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+		} else {
+			jsonResponse(d.Fields, w, http.StatusOK)
+		}
 	}).Methods("PUT")
 	fmt.Println("init /update endpoint...........................OK")
 }

@@ -102,8 +102,32 @@ func (m MongoDB) ReadMany(dataModel initialisation.DataModel) ([]initialisation.
 	return lst, nil
 }
 
-func (m MongoDB) Update(uuid uuid.UUID, data initialisation.DataModel) (initialisation.Field, error) {
-	data.Fields[initialisation.Uuid].SetData(uuid.String(), initialisation.Uuid)
+func (m MongoDB) Update(u uuid.UUID, data initialisation.DataModel) (initialisation.Field, error) {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(m.Url))
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database(m.Name).Collection(data.Name)
+	document := map[string]interface{}{}
+	for key, field := range data.Fields {
+		if key == "uuid" && field.GetDataType() == initialisation.Uuid {
+			document[key] = u.String()
+		} else {
+			document[key] = field.GetData()
+		}
+	}
+	filter := bson.M{"uuid": u.String()}
+	update := bson.M{"$set": document}
+	_, errorDb := coll.UpdateOne(context.TODO(), filter, update)
+	if errorDb != nil {
+		return nil, errorDb
+	}
 	return data.Fields, nil
 }
 
