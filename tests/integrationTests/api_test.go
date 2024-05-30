@@ -18,7 +18,7 @@ func TestServerIntegration(t *testing.T) {
 	var db database2.DatabaseInterface
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
-	_ = &core.Api{Json: initialisation.JsonHandler{File: "config/config.json"}}
+	_ = &core.Api{Json: initialisation.JsonHandler{File: "config/config.test.json"}}
 	router := mux.NewRouter()
 	router.Use(logging.Logging())
 	controller.InitControllers(router, &configuration, &dataModel, db)
