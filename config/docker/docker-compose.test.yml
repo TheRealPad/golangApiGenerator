@@ -8,4 +8,4 @@ services:
       - "8080:8080"
     container_name: golang-api
     restart: always
-    command: ["./config/config.json"]
+    command: ["./config/config.test.json"]

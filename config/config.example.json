@@ -1,0 +1,24 @@
+{
+  "name": "",
+  "port": 8080,
+  "database": {
+    "url": "",
+    "name": ""
+  },
+  "dataModels": [
+    {
+      "name": "",
+      "fields": [
+        {
+          "name": "",
+          "type": "" // string | integer | boolean | float | complex | uuid
+        }
+      ],
+      "create": true,
+      "readOne": true,
+      "readMany": false,
+      "update": true,
+      "delete": true
+    }
+  ]
+}

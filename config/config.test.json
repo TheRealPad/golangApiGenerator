@@ -1,0 +1,24 @@
+{
+  "name": "BookStore",
+  "port": 8080,
+  "database": {
+    "url": "mongodb+srv://delgadopierrealexandre:nkJ7VtlcALG0B2qZ@cluster0.k1vyunp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    "name": "sample_mflix"
+  },
+  "dataModels": [
+    {
+      "name": "book",
+      "fields": [
+        {
+          "name": "title",
+          "type": "string"
+        }
+      ],
+      "create": true,
+      "readOne": true,
+      "readMany": false,
+      "update": true,
+      "delete": true
+    }
+  ]
+}
