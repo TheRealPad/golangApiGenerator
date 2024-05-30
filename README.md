@@ -35,3 +35,10 @@ If you can't use Docker, you can run:
 ```bash
 go run .
 ```
+
+## Database
+
+For now the API only handle MongoDB, you can create a cluster and pass an url looking like that:
+```
+mongodb+srv://username:password@cluster0.k1vyunp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+```

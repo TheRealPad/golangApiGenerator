@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
 	"httpServer/src/core"
+	database2 "httpServer/src/database"
 	"httpServer/src/initialisation"
 	"httpServer/src/middlewares/logging"
 	"httpServer/src/models"
@@ -14,12 +15,13 @@ import (
 )
 
 func TestServerIntegration(t *testing.T) {
+	var db database2.DatabaseInterface
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
 	_ = &core.Api{Json: initialisation.JsonHandler{File: "config/config.json"}}
 	router := mux.NewRouter()
 	router.Use(logging.Logging())
-	controller.InitControllers(router, &configuration, &dataModel)
+	controller.InitControllers(router, &configuration, &dataModel, db)
 	server := httptest.NewServer(router)
 	defer server.Close()
 	resp, err := http.Get(server.URL + "/health")

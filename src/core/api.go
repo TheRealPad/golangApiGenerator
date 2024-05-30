@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"httpServer/src/controller"
+	database2 "httpServer/src/database"
 	"httpServer/src/initialisation"
 	"httpServer/src/middlewares"
 	"httpServer/src/models"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type ApiInterface interface {
@@ -24,13 +24,15 @@ type Api struct {
 func (a Api) Listen() {
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
+	var db database2.DatabaseInterface
 	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
+	db = &database2.MongoDB{Name: configuration.Db.Name, Url: configuration.Db.Url}
 	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
 	middlewares.GlobalMiddleware(r)
-	controller.InitControllers(r, &configuration, &dataModel)
+	controller.InitControllers(r, &configuration, &dataModel, db)
 	fmt.Println("Server", configuration.Name, "starts listening on port:", configuration.Port)
 	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
 }
@@ -45,10 +47,8 @@ func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]in
 		dataModelPtr.Fields[initialisation.Uuid] = &initialisation.DynamicType{}
 		dataModelPtr.Fields[initialisation.Uuid].SetData("", initialisation.Uuid)
 		for _, e := range model.Fields {
-			separator := " - "
-			parts := strings.SplitN(e.Value, separator, 2)
-			dataModelPtr.Fields[parts[0]] = &initialisation.DynamicType{}
-			dataModelPtr.Fields[parts[0]].SetData("", initialisation.Datatype(parts[1]))
+			dataModelPtr.Fields[e.Name] = &initialisation.DynamicType{}
+			dataModelPtr.Fields[e.Name].SetData("", initialisation.Datatype(e.Type))
 		}
 	}
 	displayConfiguration(configuration)
@@ -62,16 +62,13 @@ func displayConfiguration(configuration *models.Configuration) {
 	fmt.Println("Database:")
 	fmt.Println("\turl:", configuration.Db.Url)
 	fmt.Println("\tname:", configuration.Db.Name)
-	fmt.Println("\tport:", configuration.Db.Port)
-	fmt.Println("\tuser:", configuration.Db.User)
-	fmt.Println("\tpassword:", configuration.Db.Password)
 	fmt.Println("data models:")
 	fmt.Println("total:", len(configuration.Models))
 	for _, model := range configuration.Models {
 		fmt.Println("\tname:", model.Name)
 		fmt.Print("\tfields:", len(model.Fields), " ")
 		for _, e := range model.Fields {
-			fmt.Print(e.Value + " ")
+			fmt.Print(e.Name + " - " + e.Type + " ")
 		}
 		fmt.Println()
 		fmt.Println("\tcreate:", model.Create)
