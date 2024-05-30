@@ -15,7 +15,7 @@ import (
 )
 
 func InitControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel, db database2.DatabaseInterface) {
-	health.InitController(r)
+	health.InitController(r, dataModel)
 	initCustomControllers(r, configuration, dataModel, db)
 }
 
