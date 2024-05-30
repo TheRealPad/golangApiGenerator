@@ -19,24 +19,6 @@
       "readMany": false,
       "update": true,
       "delete": true
-    },
-    {
-      "name": "user",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "age",
-          "type": "integer"
-        }
-      ],
-      "create": true,
-      "readOne": true,
-      "readMany": true,
-      "update": true,
-      "delete": true
     }
   ]
 }
