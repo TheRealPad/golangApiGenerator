@@ -28,7 +28,7 @@ func (m MongoDB) Create(data initialisation.DataModel) (initialisation.Field, er
 		}
 	}()
 
-	coll := client.Database("sample_mflix").Collection(data.Name)
+	coll := client.Database(m.Name).Collection(data.Name)
 
 	document := map[string]interface{}{}
 	for key, field := range data.Fields {
@@ -58,7 +58,7 @@ func (m MongoDB) ReadOne(uuid uuid.UUID, dataModel initialisation.DataModel) (in
 		}
 	}()
 
-	coll := client.Database("sample_mflix").Collection(dataModel.Name)
+	coll := client.Database(m.Name).Collection(dataModel.Name)
 	var result map[string]interface{}
 	err = coll.FindOne(context.TODO(), bson.D{{"uuid", uuid.String()}}).Decode(&result)
 	if err == mongo.ErrNoDocuments {
@@ -83,7 +83,7 @@ func (m MongoDB) ReadMany(dataModel initialisation.DataModel) ([]initialisation.
 			panic(err)
 		}
 	}()
-	coll := client.Database("sample_mflix").Collection(dataModel.Name)
+	coll := client.Database(m.Name).Collection(dataModel.Name)
 	cursor, err := coll.Find(context.TODO(), bson.D{})
 	if err != nil {
 		log.Fatal(err)
@@ -108,5 +108,20 @@ func (m MongoDB) Update(uuid uuid.UUID, data initialisation.DataModel) (initiali
 }
 
 func (m MongoDB) Delete(uuid uuid.UUID, name string) (bool, error) {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(m.Url))
+	if err != nil {
+		return false, err
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database(m.Name).Collection(name)
+	_, errorDb := coll.DeleteOne(context.TODO(), bson.D{{"uuid", uuid.String()}})
+	if errorDb != nil {
+		return false, err
+	}
 	return true, nil
 }

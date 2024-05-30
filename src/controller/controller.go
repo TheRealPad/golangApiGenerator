@@ -50,12 +50,12 @@ func getKey(d *initialisation.DataModel, key string, requestData interface{}, w 
 func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWriter, r *http.Request) bool {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		jsonResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
 		return false
 	}
 	var requestData interface{}
 	if err := json.Unmarshal(body, &requestData); err != nil {
-		http.Error(w, "Failed to parse JSON body", http.StatusBadRequest)
+		jsonResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
 		return false
 	}
 	if !getUuid {
@@ -77,7 +77,7 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		}
 		newData, err := db.Create(d)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			jsonResponse(newData, w, http.StatusCreated)
 		}
@@ -92,9 +92,9 @@ func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db d
 		ok, _ := uuid.Parse(id)
 		fields, err := db.ReadOne(ok, dataModel)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else if fields == nil {
-			http.Error(w, "Data not found", http.StatusNotFound)
+			jsonResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
 		} else {
 			jsonResponse(fields, w, http.StatusOK)
 		}
@@ -106,7 +106,7 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db 
 	r.HandleFunc("/read", func(w http.ResponseWriter, r *http.Request) {
 		lst, err := db.ReadMany(dataModel)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			jsonResponse(lst, w, http.StatusOK)
 		}
@@ -132,9 +132,14 @@ func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 	r.HandleFunc("/delete/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
 		vars := mux.Vars(r)
-		uuid := vars["uuid"]
-		fmt.Printf("Delete resource with uuid: %s\n", uuid)
-		jsonResponse(d.Fields, w, http.StatusNoContent)
+		pathUuid := vars["uuid"]
+		parseUuid, _ := uuid.Parse(pathUuid)
+		_, err := db.Delete(parseUuid, dataModel.Name)
+		if err != nil {
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+		} else {
+			jsonResponse(d.Fields, w, http.StatusNoContent)
+		}
 	}).Methods("DELETE")
 	fmt.Println("init /delete endpoint...........................OK")
 }
