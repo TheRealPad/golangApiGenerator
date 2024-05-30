@@ -1,1 +1,32 @@
-<h1>Health</h1>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Health</title>
+        <style>
+            .title {
+                margin-bottom: 10px;
+            }
+            .content {
+                margin-bottom: 10px;
+                margin-left: 1%;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Up since: {{ .StartTime }}</h1>
+        <h1>Number of API calls: {{ .ApiCalls }}</h1>
+        <h1>Data models</h1>
+        <ul>
+            {{ range $index, $dataModel := .DataModels }}
+            <li class="title">
+                <span><b>{{ $dataModel.Name }}</b></span>
+                {{ range $index, $field := $dataModel.Fields }}
+                <li class="content">
+                    <span>{{ $index }} - {{ $field.GetDataType }}</span>
+                </li>
+                {{ end }}
+            </li>
+            {{ end }}
+        </ul>
+    </body>
+</html>
