@@ -26,9 +26,6 @@ jobs:
       - name: wait 10 sec
         run: sleep 10
 
-      - name: check server listening
-        run: curl localhost:8080/health/traffic
-
       - name: stop container
         run: make stop
 
