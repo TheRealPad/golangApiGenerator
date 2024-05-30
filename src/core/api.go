@@ -10,7 +10,6 @@ import (
 	"httpServer/src/models"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type ApiInterface interface {
@@ -48,10 +47,8 @@ func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]in
 		dataModelPtr.Fields[initialisation.Uuid] = &initialisation.DynamicType{}
 		dataModelPtr.Fields[initialisation.Uuid].SetData("", initialisation.Uuid)
 		for _, e := range model.Fields {
-			separator := " - "
-			parts := strings.SplitN(e.Value, separator, 2)
-			dataModelPtr.Fields[parts[0]] = &initialisation.DynamicType{}
-			dataModelPtr.Fields[parts[0]].SetData("", initialisation.Datatype(parts[1]))
+			dataModelPtr.Fields[e.Name] = &initialisation.DynamicType{}
+			dataModelPtr.Fields[e.Name].SetData("", initialisation.Datatype(e.Type))
 		}
 	}
 	displayConfiguration(configuration)
@@ -71,7 +68,7 @@ func displayConfiguration(configuration *models.Configuration) {
 		fmt.Println("\tname:", model.Name)
 		fmt.Print("\tfields:", len(model.Fields), " ")
 		for _, e := range model.Fields {
-			fmt.Print(e.Value + " ")
+			fmt.Print(e.Name + " - " + e.Type + " ")
 		}
 		fmt.Println()
 		fmt.Println("\tcreate:", model.Create)
