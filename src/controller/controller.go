@@ -47,7 +47,7 @@ func getKey(d *initialisation.DataModel, key string, requestData interface{}, w 
 	return true
 }
 
-func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWriter, r *http.Request) bool {
+func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWriter, r *http.Request, allFields bool) bool {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -62,6 +62,9 @@ func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWr
 	if !getUuid {
 		d.Fields[initialisation.Uuid].SetData(utils.GenerateUuid(), initialisation.Uuid)
 	}
+	if !allFields {
+		return true
+	}
 	for key := range d.Fields {
 		if (key != initialisation.Uuid || getUuid && key == initialisation.Uuid) && !getKey(d, key, requestData, w) {
 			return false
@@ -73,7 +76,7 @@ func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWr
 func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
-		if !getRequestData(false, &d, w, r) {
+		if !getRequestData(false, &d, w, r, true) {
 			return
 		}
 		newData, err := db.Create(d)
@@ -112,7 +115,11 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db 
 			fmt.Println(err.Error())
 			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
-			jsonResponse(lst, w, http.StatusOK)
+			if lst == nil {
+				jsonResponse(make([]int, 0), w, http.StatusOK)
+			} else {
+				jsonResponse(lst, w, http.StatusOK)
+			}
 		}
 	}).Methods("GET")
 	fmt.Println("init /read many endpoint........................OK")
@@ -121,7 +128,7 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db 
 func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
 	r.HandleFunc("/update/{uuid}", func(w http.ResponseWriter, r *http.Request) {
 		d := dataModel
-		if !getRequestData(false, &d, w, r) {
+		if !getRequestData(false, &d, w, r, true) {
 			return
 		}
 		vars := mux.Vars(r)
@@ -155,6 +162,54 @@ func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 	fmt.Println("init /delete endpoint...........................OK")
 }
 
+func initPatchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
+	r.HandleFunc("/patch/{uuid}", func(w http.ResponseWriter, r *http.Request) {
+		d := dataModel
+		body, err := io.ReadAll(r.Body)
+		vars := mux.Vars(r)
+		pathUuid := vars["uuid"]
+		parseUuid, _ := uuid.Parse(pathUuid)
+		d.Fields["uuid"].SetData(parseUuid.String(), initialisation.Uuid)
+		if err != nil {
+			fmt.Println(err.Error())
+			jsonResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
+			return
+		}
+		var requestData map[string]interface{}
+		if err := json.Unmarshal(body, &requestData); err != nil {
+			jsonResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
+			return
+		}
+		for key, val := range requestData {
+			d.Fields[key].SetData(val.(string), d.Fields[key].GetDataType())
+		}
+		fields, err := db.ReadOne(parseUuid, dataModel)
+		if err != nil {
+			fmt.Println(err.Error())
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			return
+		} else if fields == nil {
+			jsonResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
+			return
+		} else {
+			for key := range d.Fields {
+				_, ok := requestData[key]
+				if !ok {
+					d.Fields[key].SetData(fields[key].GetData().(string), d.Fields[key].GetDataType())
+				}
+			}
+			_, err := db.Update(parseUuid, d)
+			if err != nil {
+				fmt.Println(err.Error())
+				jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			} else {
+				jsonResponse(d.Fields, w, http.StatusOK)
+			}
+		}
+	}).Methods("PATCH")
+	fmt.Println("init /patch endpoint............................OK")
+}
+
 func initCustomControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel, db database2.DatabaseInterface) {
 	for _, field := range configuration.Models {
 		controller := r.PathPrefix("/" + field.Name).Subrouter()
@@ -166,6 +221,7 @@ func initCustomControllers(r *mux.Router, configuration *models.Configuration, d
 			&field.ReadMany: initReadManyEndpoint,
 			&field.Update:   initUpdateEndpoint,
 			&field.Delete:   initDeleteEndpoint,
+			&field.Patch:    initPatchEndpoint,
 		}
 		var d initialisation.DataModel
 		for i, elem := range *dataModel {
