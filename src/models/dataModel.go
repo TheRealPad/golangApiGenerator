@@ -8,5 +8,6 @@ type DataModel struct {
 	Update   bool    `json:"update"`
 	Delete   bool    `json:"delete"`
 	Patch    bool    `json:"patch"`
+	Search   bool    `json:"search"`
 	Fields   []Field `json:"fields"`
 }

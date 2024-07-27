@@ -210,6 +210,28 @@ func initPatchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db dat
 	fmt.Println("init /patch endpoint............................OK")
 }
 
+func initSearchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db database2.DatabaseInterface) {
+	r.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		lst, err := db.ReadMany(dataModel)
+		if err != nil {
+			fmt.Println(err.Error())
+			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+		} else {
+			if lst == nil {
+				jsonResponse(make([]int, 0), w, http.StatusOK)
+			} else {
+				lst = utils.Rsql(r.URL.Query().Get("rsql"), lst)
+				if lst == nil {
+					jsonResponse(make([]int, 0), w, http.StatusOK)
+				} else {
+					jsonResponse(lst, w, http.StatusOK)
+				}
+			}
+		}
+	}).Methods("GET")
+	fmt.Println("init /search endpoint............................OK")
+}
+
 func initCustomControllers(r *mux.Router, configuration *models.Configuration, dataModel *[]initialisation.DataModel, db database2.DatabaseInterface) {
 	for _, field := range configuration.Models {
 		controller := r.PathPrefix("/" + field.Name).Subrouter()
@@ -222,6 +244,7 @@ func initCustomControllers(r *mux.Router, configuration *models.Configuration, d
 			&field.Update:   initUpdateEndpoint,
 			&field.Delete:   initDeleteEndpoint,
 			&field.Patch:    initPatchEndpoint,
+			&field.Search:   initSearchEndpoint,
 		}
 		var d initialisation.DataModel
 		for i, elem := range *dataModel {
