@@ -27,7 +27,7 @@ func (a Api) Listen() {
 	var configuration models.Configuration
 	var dataModel []initialisation.DataModel
 	var db database2.DatabaseInterface
-	if !a.initialisation(&configuration, &dataModel) {
+	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
 	if configuration.IsSecure {

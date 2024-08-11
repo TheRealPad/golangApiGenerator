@@ -5,7 +5,7 @@ import (
 	"httpServer/src/models"
 )
 
-func (a Api) initialisation(configuration *models.Configuration, dataModel *[]initialisation.DataModel) bool {
+func (a Api) Initialisation(configuration *models.Configuration, dataModel *[]initialisation.DataModel) bool {
 	if !a.Json.ReadFile(configuration) {
 		return false
 	}
