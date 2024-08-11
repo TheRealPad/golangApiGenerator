@@ -15,6 +15,7 @@ Create a server where you just need a config file, and the program do the rest
 - api port
 - routes (name and HTTP method + describe which part of CRUD it is)
 - data models (name, fields and fields type)
+- isSecure (if set to true, the api will create a random key and you will need it for every request in the Header as ApiKey: key)
 
 ## How to run
 
