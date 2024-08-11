@@ -7,7 +7,9 @@ import (
 	database2 "httpServer/src/database"
 	"httpServer/src/initialisation"
 	"httpServer/src/middlewares"
+	"httpServer/src/middlewares/apiKey"
 	"httpServer/src/models"
+	"httpServer/src/utils"
 	"net/http"
 	"strconv"
 )
@@ -28,10 +30,14 @@ func (a Api) Listen() {
 	if !a.Initialisation(&configuration, &dataModel) {
 		return
 	}
+	if configuration.IsSecure {
+		apiKey.ApiKey, _ = utils.GenerateKey(100)
+		fmt.Println("Api key: ", apiKey.ApiKey)
+	}
 	db = &database2.MongoDB{Name: configuration.Db.Name, Url: configuration.Db.Url}
 	displayDataTypes(&dataModel)
 	r := mux.NewRouter()
-	middlewares.GlobalMiddleware(r)
+	middlewares.GlobalMiddleware(r, configuration.IsSecure)
 	controller.InitControllers(r, &configuration, &dataModel, db)
 	fmt.Println("Server", configuration.Name, "starts listening on port:", configuration.Port)
 	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
@@ -59,6 +65,7 @@ func displayConfiguration(configuration *models.Configuration) {
 	fmt.Println("CONFIGURATION:\n")
 	fmt.Println("port:", configuration.Port)
 	fmt.Println("name:", configuration.Name)
+	fmt.Println("isSecure:", configuration.IsSecure)
 	fmt.Println("Database:")
 	fmt.Println("\turl:", configuration.Db.Url)
 	fmt.Println("\tname:", configuration.Db.Name)

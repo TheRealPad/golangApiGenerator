@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"github.com/gorilla/mux"
+	"httpServer/src/middlewares/apiKey"
 	"httpServer/src/middlewares/logging"
 	"net/http"
 )
@@ -15,6 +16,9 @@ func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 	return f
 }
 
-func GlobalMiddleware(r *mux.Router) {
+func GlobalMiddleware(r *mux.Router, isSecure bool) {
 	r.Use(logging.Logging())
+	if isSecure {
+		r.Use(apiKey.CheckApiKey())
+	}
 }

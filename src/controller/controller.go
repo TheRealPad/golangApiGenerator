@@ -24,23 +24,11 @@ func test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Custom controller "+r.RequestURI[:len(r.RequestURI)-size]+" is working\n")
 }
 
-func jsonResponse(data interface{}, w http.ResponseWriter, statusCode int) {
-	jsonResponse, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	w.Write(jsonResponse)
-	fmt.Printf("%d - ", statusCode)
-}
-
 func getKey(d *initialisation.DataModel, key string, requestData interface{}, w http.ResponseWriter) bool {
 	value, ok := requestData.(map[string]interface{})[key]
 	if !ok {
 		fmt.Printf("Key %s not found in JSON data\n", key)
-		jsonResponse(map[string]string{"error": "missing field in request body: " + key}, w, http.StatusBadRequest)
+		utils.HttpResponse(map[string]string{"error": "missing field in request body: " + key}, w, http.StatusBadRequest)
 		return false
 	}
 	d.Fields[key].SetData(value.(string), d.Fields[key].GetDataType())
@@ -51,12 +39,12 @@ func getRequestData(getUuid bool, d *initialisation.DataModel, w http.ResponseWr
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err.Error())
-		jsonResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
+		utils.HttpResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
 		return false
 	}
 	var requestData interface{}
 	if err := json.Unmarshal(body, &requestData); err != nil {
-		jsonResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
+		utils.HttpResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
 		return false
 	}
 	if !getUuid {
@@ -82,9 +70,9 @@ func initCreateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		newData, err := db.Create(d)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
-			jsonResponse(newData, w, http.StatusCreated)
+			utils.HttpResponse(newData, w, http.StatusCreated)
 		}
 	}).Methods("POST")
 	fmt.Println("init /create endpoint...........................OK")
@@ -98,11 +86,11 @@ func initReadOneEndpoint(r *mux.Router, dataModel initialisation.DataModel, db d
 		fields, err := db.ReadOne(ok, dataModel)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else if fields == nil {
-			jsonResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
+			utils.HttpResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
 		} else {
-			jsonResponse(fields, w, http.StatusOK)
+			utils.HttpResponse(fields, w, http.StatusOK)
 		}
 	}).Methods("GET")
 	fmt.Println("init /read one endpoint.........................OK")
@@ -113,12 +101,12 @@ func initReadManyEndpoint(r *mux.Router, dataModel initialisation.DataModel, db 
 		lst, err := db.ReadMany(dataModel)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			if lst == nil {
-				jsonResponse(make([]int, 0), w, http.StatusOK)
+				utils.HttpResponse(make([]int, 0), w, http.StatusOK)
 			} else {
-				jsonResponse(lst, w, http.StatusOK)
+				utils.HttpResponse(lst, w, http.StatusOK)
 			}
 		}
 	}).Methods("GET")
@@ -138,9 +126,9 @@ func initUpdateEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		_, err := db.Update(parseUuid, d)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
-			jsonResponse(d.Fields, w, http.StatusOK)
+			utils.HttpResponse(d.Fields, w, http.StatusOK)
 		}
 	}).Methods("PUT")
 	fmt.Println("init /update endpoint...........................OK")
@@ -154,9 +142,9 @@ func initDeleteEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		parseUuid, _ := uuid.Parse(pathUuid)
 		_, err := db.Delete(parseUuid, dataModel.Name)
 		if err != nil {
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
-			jsonResponse(d.Fields, w, http.StatusNoContent)
+			utils.HttpResponse(d.Fields, w, http.StatusNoContent)
 		}
 	}).Methods("DELETE")
 	fmt.Println("init /delete endpoint...........................OK")
@@ -172,12 +160,12 @@ func initPatchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db dat
 		d.Fields["uuid"].SetData(parseUuid.String(), initialisation.Uuid)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
+			utils.HttpResponse(map[string]string{"error": "Failed to read request body"}, w, http.StatusBadRequest)
 			return
 		}
 		var requestData map[string]interface{}
 		if err := json.Unmarshal(body, &requestData); err != nil {
-			jsonResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
+			utils.HttpResponse(map[string]string{"error": "Failed to parse JSON body"}, w, http.StatusBadRequest)
 			return
 		}
 		for key, val := range requestData {
@@ -186,10 +174,10 @@ func initPatchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db dat
 		fields, err := db.ReadOne(parseUuid, dataModel)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 			return
 		} else if fields == nil {
-			jsonResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
+			utils.HttpResponse(map[string]string{"message": "no data"}, w, http.StatusNotFound)
 			return
 		} else {
 			for key := range d.Fields {
@@ -201,9 +189,9 @@ func initPatchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db dat
 			_, err := db.Update(parseUuid, d)
 			if err != nil {
 				fmt.Println(err.Error())
-				jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+				utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 			} else {
-				jsonResponse(d.Fields, w, http.StatusOK)
+				utils.HttpResponse(d.Fields, w, http.StatusOK)
 			}
 		}
 	}).Methods("PATCH")
@@ -215,16 +203,16 @@ func initSearchEndpoint(r *mux.Router, dataModel initialisation.DataModel, db da
 		lst, err := db.ReadMany(dataModel)
 		if err != nil {
 			fmt.Println(err.Error())
-			jsonResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
+			utils.HttpResponse(map[string]string{"error": "Internal server error"}, w, http.StatusInternalServerError)
 		} else {
 			if lst == nil {
-				jsonResponse(make([]int, 0), w, http.StatusOK)
+				utils.HttpResponse(make([]int, 0), w, http.StatusOK)
 			} else {
 				lst = utils.Rsql(r.URL.Query().Get("rsql"), lst)
 				if lst == nil {
-					jsonResponse(make([]int, 0), w, http.StatusOK)
+					utils.HttpResponse(make([]int, 0), w, http.StatusOK)
 				} else {
-					jsonResponse(lst, w, http.StatusOK)
+					utils.HttpResponse(lst, w, http.StatusOK)
 				}
 			}
 		}

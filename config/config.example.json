@@ -1,6 +1,7 @@
 {
   "name": "",
   "port": 8080,
+  "isSecure": true,
   "database": {
     "url": "",
     "name": ""

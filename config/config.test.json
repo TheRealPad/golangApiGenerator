@@ -1,6 +1,7 @@
 {
   "name": "BookStore",
   "port": 8080,
+  "isSecure": true,
   "database": {
     "url": "mongodb+srv://delgadopierrealexandre:nkJ7VtlcALG0B2qZ@cluster0.k1vyunp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
     "name": "sample_mflix"
