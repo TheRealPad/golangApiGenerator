@@ -6,7 +6,7 @@ type DataModel struct {
 	ReadOne  bool    `json:"readOne"`
 	ReadMany bool    `json:"readMany"`
 	Update   bool    `json:"update"`
-	Delete   bool    `json:"delete"`
+	Delete   bool    `json:"deleteResource"`
 	Patch    bool    `json:"patch"`
 	Search   bool    `json:"search"`
 	Fields   []Field `json:"fields"`
