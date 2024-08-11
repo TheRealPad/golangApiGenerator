@@ -6,7 +6,7 @@ import (
 )
 
 func GenerateKey(length int) (string, error) {
-	bytes := make([]byte, length)
+	bytes := make([]byte, length/2)
 
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
